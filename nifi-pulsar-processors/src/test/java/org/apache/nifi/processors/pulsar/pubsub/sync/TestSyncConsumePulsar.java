@@ -41,6 +41,7 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
 
         runner.setProperty(ConsumePulsar.TOPICS, "foo");
         runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
         runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
 
@@ -57,6 +58,7 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
 
         runner.setProperty(ConsumePulsar.TOPICS, "foo");
         runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
         runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
 
@@ -75,6 +77,7 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
 
         runner.setProperty(ConsumePulsar.TOPICS, "foo");
         runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
         runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
 
@@ -111,6 +114,7 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
         runner.setProperty(ConsumePulsar.TOPICS, "foo");
         runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
         runner.setProperty(ConsumePulsar.CONSUMER_BATCH_SIZE, 1 + "");
+        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run(1, true);
         runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
 

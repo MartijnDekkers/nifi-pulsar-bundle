@@ -125,12 +125,17 @@ public class ConsumePulsar extends AbstractPulsarConsumerProcessor<byte[]> {
     }
 
     private void consume(Consumer<byte[]> consumer, ProcessContext context, ProcessSession session) throws PulsarClientException {
+ 
         try {
             final int maxMessages = context.getProperty(CONSUMER_BATCH_SIZE).isSet() ? context.getProperty(CONSUMER_BATCH_SIZE)
                     .evaluateAttributeExpressions().asInteger() : Integer.MAX_VALUE;
 
             final byte[] demarcatorBytes = context.getProperty(MESSAGE_DEMARCATOR).isSet() ? context.getProperty(MESSAGE_DEMARCATOR)
                     .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
+            
+            // Cumulative acks are only permitted on Exclusive subscriptions.
+            final boolean exclusive = context.getProperty(SUBSCRIPTION_TYPE).getValue()
+            		.equalsIgnoreCase(EXCLUSIVE.getValue());
 
             FlowFile flowFile = session.create();
             OutputStream out = session.write(flowFile);
@@ -141,9 +146,12 @@ public class ConsumePulsar extends AbstractPulsarConsumerProcessor<byte[]> {
 
             while (((msg = consumer.receive(0, TimeUnit.SECONDS)) != null) && loopCounter.get() < maxMessages) {
                 try {
-
                     lastMsg = msg;
                     loopCounter.incrementAndGet();
+                    
+                    if (!exclusive) {
+                    	consumer.acknowledge(msg);
+                    }
 
                     // Skip empty messages, as they cause NPE's when we write them to the OutputStream
                     if (msg.getValue() == null || msg.getValue().length < 1) {
@@ -154,14 +162,18 @@ public class ConsumePulsar extends AbstractPulsarConsumerProcessor<byte[]> {
                     msgCount.getAndIncrement();
 
                 } catch (final IOException ioEx) {
+                  getLogger().error("Unable to create flow file ", ioEx);
                   session.rollback();
+                  if (exclusive) {
+                     consumer.acknowledgeCumulative(lastMsg);
+                  }
                   return;
                 }
             }
-
+            
             IOUtils.closeQuietly(out);
 
-            if (lastMsg != null)  {
+            if (exclusive && lastMsg != null)  {
                 consumer.acknowledgeCumulative(lastMsg);
             }
 
@@ -177,6 +189,7 @@ public class ConsumePulsar extends AbstractPulsarConsumerProcessor<byte[]> {
             }
 
         } catch (PulsarClientException e) {
+        	getLogger().error("Error communicating with Apache Pulsar", e);
             context.yield();
             session.rollback();
         }
