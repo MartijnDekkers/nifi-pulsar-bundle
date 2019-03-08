@@ -26,6 +26,8 @@ import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.AuthenticationFactory;
+import org.apache.pulsar.client.api.PulsarClientException.UnsupportedAuthenticationException;
+import org.apache.pulsar.client.impl.auth.AuthenticationAthenz;
 
 // import org.apache.pulsar.client.impl.auth.AuthenticationAthenz;
 
@@ -106,9 +108,12 @@ public class PulsarClientAthenzAuthenticationService extends AbstractPulsarClien
 		   authParams.put("keyId", configContext.getProperty(TENANT_PRIVATE_KEY_ID).getValue()); 
 		}
 
- //		return AuthenticationFactory.create(AuthenticationAthenz.class.getName(), authParams);
-
-		return null;
+ 		try {
+			return AuthenticationFactory.create(AuthenticationAthenz.class.getName(), authParams);
+		} catch (UnsupportedAuthenticationException e) {
+			getLogger().error("Unable to authenticate", e);
+			return null;
+		}
 	}
 
 }

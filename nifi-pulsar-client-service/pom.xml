@@ -27,6 +27,11 @@
 
     <dependencies>
         <dependency>
+    		<groupId>org.apache.pulsar</groupId>
+    		<artifactId>pulsar-client-auth-athenz</artifactId>
+    		<version>${pulsar.version}</version>
+		</dependency>
+        <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-pulsar-client-service-api</artifactId>
             <version>1.8.0</version>
@@ -41,11 +46,6 @@
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-processor-utils</artifactId>
             <version>1.8.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-ssl-context-service-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
