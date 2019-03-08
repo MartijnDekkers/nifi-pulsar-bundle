@@ -26,8 +26,9 @@ import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.AuthenticationFactory;
+import org.apache.pulsar.client.api.PulsarClientException.UnsupportedAuthenticationException;
+import org.apache.pulsar.client.impl.auth.AuthenticationAthenz;
 
-// import org.apache.pulsar.client.impl.auth.AuthenticationAthenz;
 
 /**
  * https://pulsar.apache.org/docs/en/security-athenz/
@@ -96,7 +97,6 @@ public class PulsarClientAthenzAuthenticationService extends AbstractPulsarClien
 	@Override
 	public Authentication getAuthentication() {
 		Map<String, String> authParams = new HashMap<>();
-		// TODO Define constants for these keys
 		authParams.put("tenantDomain", configContext.getProperty(TENANT_DOMAIN).getValue()); 
 		authParams.put("tenantService", configContext.getProperty(TENANT_SERVICE).getValue()); 
 		authParams.put("providerDomain", configContext.getProperty(PROVIDER_DOMAIN).getValue()); 
@@ -106,9 +106,12 @@ public class PulsarClientAthenzAuthenticationService extends AbstractPulsarClien
 		   authParams.put("keyId", configContext.getProperty(TENANT_PRIVATE_KEY_ID).getValue()); 
 		}
 
- //		return AuthenticationFactory.create(AuthenticationAthenz.class.getName(), authParams);
-
-		return null;
+ 		try {
+			return AuthenticationFactory.create(AuthenticationAthenz.class.getName(), authParams);
+		} catch (UnsupportedAuthenticationException e) {
+			getLogger().error("Unable to authenticate", e);
+			return null;
+		}
 	}
 
 }
